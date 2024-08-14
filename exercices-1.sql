@@ -7,7 +7,7 @@ create table reviewers(
 create table series(
 	id int primary key auto_increment,
     title varchar(100),
-    relesed_year year,
+    released_year year,
     genre varchar(100)
 );
 
@@ -15,7 +15,7 @@ create table reviews(
 	id int primary key auto_increment,
     rating decimal(2,1),
     series_id int,
-    reviewers_id int,
+    reviewer_id int,
     foreign key(series_id) references series(id),
     foreign key(reviewers_id) references reviewers(id)
 );
@@ -68,4 +68,47 @@ INSERT INTO reviews(series_id, reviewer_id, rating) VALUES
     (13,3,8.0),(13,4,7.2),
     (14,2,8.5),(14,3,8.9),(14,4,8.9);
     
-    
+select title, rating from series
+join reviews on series.id = reviews.series_id;
+
+select title, avg(rating) as 'avg_rating' from series
+join reviews on series.id = reviews.series_id
+group by title
+order by avg(rating);
+
+select first_name, last_name, rating from reviewers
+join reviews on reviewers.id = reviews.reviewer_id;
+
+select title from series
+left join reviews on series.id = reviews.series_id;
+
+select * from series
+left join reviews on series.id = reviews.series_id;
+
+select title as unreviewed_series from series 
+left join reviews on series.id = reviews.series_id
+where rating is null;
+
+select genre, avg(rating) from series
+join reviews on series.id = reviews.series_id
+group by genre;
+
+-- USING CASE
+select first_name, last_name, count(rating), ifnull(min(rating), 0), ifnull(max(rating), 0), ifnull(avg(rating), 0), case
+	when count(rating) > 10 then 'POWERUSER'
+    when count(rating) != 0 then 'ACTIVE'
+    else 'INACTIVE'
+    end as 'STATUS'from reviewers
+left join reviews on reviewers.id = reviews.reviewer_id
+group by first_name, last_name;
+
+-- USING IF 
+select first_name, last_name, count(rating), ifnull(min(rating), 0), ifnull(max(rating), 0), ifnull(avg(rating),0),
+if(count(rating) > 0, 'ACTIVE', 'INACTIVE') from reviewers
+left join reviews on reviewers.id = reviews.reviewer_id
+group by first_name, last_name;
+
+select title, rating, concat(first_name,' ', last_name) as reviewer from reviews
+join series on reviews.series_id = series.id
+join reviewers on reviews.reviewer_id = reviewers.id
+order by title, rating;
